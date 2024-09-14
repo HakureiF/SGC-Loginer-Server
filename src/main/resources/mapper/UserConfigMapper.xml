@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seer.seerweb.mapper.UserConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.seer.seerweb.entity.UserConfig">
+            <id property="userid" column="userid" jdbcType="VARCHAR"/>
+            <result property="headUrl" column="head_url" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        userid,head_url
+    </sql>
+</mapper>

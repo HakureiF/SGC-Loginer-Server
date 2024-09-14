@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seer.seerweb.mapper.UserInformationMapper">
+
+    <resultMap id="BaseResultMap" type="com.seer.seerweb.entity.UserInformation">
+            <id property="userid" column="UserId" jdbcType="VARCHAR"/>
+            <result property="phone" column="Phone" jdbcType="VARCHAR"/>
+            <result property="password" column="Password" jdbcType="VARCHAR"/>
+            <result property="nickname" column="NickName" jdbcType="VARCHAR"/>
+            <result property="type" column="type" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        UserId,Phone,Password,
+        NickName,type
+    </sql>
+</mapper>

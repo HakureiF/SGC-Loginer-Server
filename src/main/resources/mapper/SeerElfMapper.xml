@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seer.seerweb.mapper.SeerElfMapper">
+
+    <resultMap id="BaseResultMap" type="com.seer.seerweb.entity.SeerElf">
+            <id property="id" column="ID" jdbcType="INTEGER"/>
+            <result property="defname" column="DefName" jdbcType="VARCHAR"/>
+            <result property="typeid" column="TypeID" jdbcType="INTEGER"/>
+            <result property="levelstar" column="LevelStar" jdbcType="INTEGER"/>
+            <result property="pickednum" column="PickedNum" jdbcType="INTEGER"/>
+            <result property="bannednum" column="BannedNum" jdbcType="INTEGER"/>
+            <result property="positionleft" column="PositionLeft" jdbcType="VARCHAR"/>
+            <result property="positiontop" column="PositionTop" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        ID,DefName,TypeID,
+        LevelStar,PickedNum,BannedNum,
+        PositionLeft,PositionTop
+    </sql>
+</mapper>

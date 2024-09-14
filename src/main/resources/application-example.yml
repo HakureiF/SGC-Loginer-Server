@@ -1,0 +1,30 @@
+#端口
+server:
+  port: 8080
+
+# 低延迟要求，数据源最好在本地
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/dbname
+    username: root
+    password: toot
+    hikari:
+      max-lifetime: 100000
+
+  #    redis配置
+  data:
+    redis:
+      connect-timeout: 3000ms
+      password: root
+      database: 0
+      port: 6379
+      host: 127.0.0.1
+
+config:
+  # aes加密密钥
+  aesKey: test
+  #  对局存在时间，小时计
+  gameTime: 5
+  #  登录token时长
+  tokenTime: 8

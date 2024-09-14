@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seer.seerweb.mapper.RacegroupMapper">
+    <resultMap id="raceGroupMap" type="com.seer.seerweb.entity.dto.RacegroupDTO">
+        <id column="GroupId" property="groupId"/>
+        <result column="Host" property="host"/>
+        <result column="GroupName" property="groupName"/>
+        <result column="BanElfList" property="banElfList"/>
+        <result column="PickElfList" property="pickElfList"/>
+        <result column="EnableBan" property="enableBan"/>
+        <result column="EnablePool" property="enablePool"/>
+        <result column="NickName" property="hostName"/>
+    </resultMap>
+
+    <select id="onesRaceGroups" resultMap="raceGroupMap">
+        select rg.*, u.NickName from RaceGroup rg left join GroupUser gu on gu.GroupId = rg.GroupId
+            left join UserInformation u on rg.Host = u.UserId where gu.UserId = #{userid} and gu.JoinMark=1
+    </select>
+
+    <select id="searchGroups" resultMap="raceGroupMap">
+        select rg.*, u.NickName from RaceGroup rg left join UserInformation u on rg.Host = u.UserId
+        where rg.GroupId like concat('%', #{group}, '%') or rg.GroupName like concat('%', #{group}, '%')
+    </select>
+</mapper>
