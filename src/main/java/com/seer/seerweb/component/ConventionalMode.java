@@ -392,9 +392,9 @@ public class ConventionalMode implements CommandLineRunner {
         Object Judge = redisTemplate.opsForHash().get(gameId, "Judge");
         if (Objects.equals(Judge, userid)) {
             for (DelayTask delayTask : delayQueueManager.getDelayQueue()) {
-              if (delayTask.gameId().equals(gameId)) {
-                delayQueueManager.remove(delayTask);
-              }
+                if (delayTask.gameId().equals(gameId)) {
+                    delayQueueManager.remove(delayTask);
+                }
             }
             if (Judge != null) {
                 // TODO 保存对局结果
@@ -467,6 +467,22 @@ public class ConventionalMode implements CommandLineRunner {
     private final LinkedBlockingQueue<String> matchQueue = new LinkedBlockingQueue<>();
 
     public void joinMatch(String userid) {
+        String raceCountKey = (String) redisTemplate.opsForHash().get("match-open", "raceCountKey");
+        Integer raceMaxCount = (Integer) redisTemplate.opsForHash().get("match-open", "raceMaxCount");
+        if (raceCountKey != null && raceMaxCount != null) {
+            Integer count = (Integer) redisTemplate.opsForHash().get(raceCountKey, "matchCount");
+            if (count != null) {
+                if (count >= raceMaxCount) {
+                    sendMessageById(userid, "RacePlayerMaxCount");
+                    return;
+                }
+            } else {
+                sendMessageById(userid, "RacePlayerNotFound");
+                return;
+            }
+        }
+
+
         if (redisTemplate.opsForHash().hasKey("PlayersBanned", userid)) {
             long curmill = System.currentTimeMillis()/1000;
             long banUntil = (Integer) Objects.requireNonNull(redisTemplate.opsForHash().get("PlayersBanned", userid));
@@ -513,7 +529,23 @@ public class ConventionalMode implements CommandLineRunner {
                     String player1 = matchQueue.take();
                     String player2 = matchQueue.take();
                     log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
-                    createConventional(player1, player2);
+
+                    String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
+                    String raceCountKey = (String) redisTemplate.opsForHash().get("match-open", "raceCountKey");
+                    if (raceCombKey != null && raceCountKey != null) {
+                        if (Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(raceCombKey, player1 + "-" + player2))
+                                || Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(raceCombKey, player2 + "-" + player1))) {
+                            // 该2个米米号已经匹配过
+                            matchQueue.add(player1);
+                            matchQueue.add(player2);
+                        } else {
+                            createConventional(player1, player2);
+                            redisTemplate.opsForSet().add(raceCombKey, player1 + "-" + player2);
+
+                        }
+                    } else {
+                        createConventional(player1, player2);
+                    }
                 }
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
