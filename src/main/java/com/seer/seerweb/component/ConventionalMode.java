@@ -329,6 +329,7 @@ public class ConventionalMode implements CommandLineRunner {
                     }
                 }
 
+                // 统计分数
                 String type = (String) redisTemplate.opsForHash().get("game" + userid, "type");
                 if (type == null) return;
                 String mimiId = userid.substring(11);
@@ -339,6 +340,17 @@ public class ConventionalMode implements CommandLineRunner {
                     redisTemplate.opsForHash().increment("ScoreBoard" + groupId, mimiId, score);
                 } else {
                     redisTemplate.opsForHash().put("ScoreBoard" + groupId, mimiId, 1000 + score);
+                }
+
+
+                String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
+                if (raceCombKey != null) {
+                    String player1 = (String) redisTemplate.opsForHash().get(gameId, "Player1");
+                    String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
+                    if (player1 != null && player2 != null) {
+                        String side = player1.equals(userid) ? "player1": "player2";
+                        redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, side + "Win");
+                    }
                 }
             }
         }
@@ -533,15 +545,16 @@ public class ConventionalMode implements CommandLineRunner {
                     String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
                     String raceCountKey = (String) redisTemplate.opsForHash().get("match-open", "raceCountKey");
                     if (raceCombKey != null && raceCountKey != null) {
-                        if (Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(raceCombKey, player1 + "-" + player2))
-                                || Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(raceCombKey, player2 + "-" + player1))) {
+                        if (Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(raceCombKey, player1 + "-" + player2))
+                                || Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(raceCombKey, player2 + "-" + player1))) {
                             // 该2个米米号已经匹配过
                             matchQueue.add(player1);
                             matchQueue.add(player2);
                         } else {
                             createConventional(player1, player2);
-                            redisTemplate.opsForSet().add(raceCombKey, player1 + "-" + player2);
-
+                            redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "matched");
+                            redisTemplate.opsForHash().increment(raceCountKey, player1, 1L);
+                            redisTemplate.opsForHash().increment(raceCountKey, player2, 1L);
                         }
                     } else {
                         createConventional(player1, player2);

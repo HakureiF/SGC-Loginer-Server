@@ -239,9 +239,14 @@ public class DelayQueueManager implements CommandLineRunner {
       String player1 = (String) redisTemplate.opsForHash().get(gameId, "Player1");
       String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
       String groupId = (String) redisTemplate.opsForHash().get(gameId, "groupId");
+
+      String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
       if (player1 != null && player2 != null&& player2.equals(userId) && groupId != null) {
         // 红方掉线
         gameInformationService.exitGame("game" + player2);
+        if (raceCombKey != null) {
+          redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "player2Offline");
+        }
 //        String mimiId = player1.substring(11);
 //        int score = 15;
 //        List<BagPetVO> mypetState = JSON.parseArray((String) redisTemplate.opsForHash().get(gameId, "Player1PetState"), BagPetVO.class);
@@ -255,6 +260,9 @@ public class DelayQueueManager implements CommandLineRunner {
       if (player1 != null && player2 != null&& player1.equals(userId) && groupId != null) {
         // 蓝方掉线
         gameInformationService.exitGame("game" + player1);
+        if (raceCombKey != null) {
+          redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "player1Offline");
+        }
 //        String mimiId = player2.substring(11);
 //        int score = 15;
 //        List<BagPetVO> mypetState = JSON.parseArray((String) redisTemplate.opsForHash().get(gameId, "Player2PetState"), BagPetVO.class);
