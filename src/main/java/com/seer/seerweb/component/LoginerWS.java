@@ -161,6 +161,7 @@ public class LoginerWS implements WebSocketHandler {
     }
   }
 
+  // 连接前检查连接会话，若会话存在则关闭会话，会话不存在则返回True
   public static boolean checkLoginerState(String userid) {
     if (userid.startsWith("seeraccount") && loginerSessions.containsKey(userid)) {
       synchronized (loginerSessions.get(userid)) {
@@ -172,6 +173,10 @@ public class LoginerWS implements WebSocketHandler {
       }
     }
     return !loginerSessions.containsKey(userid);
+  }
+
+  public static boolean checkSession(String userid) {
+    return loginerSessions.containsKey(userid);
   }
 
 

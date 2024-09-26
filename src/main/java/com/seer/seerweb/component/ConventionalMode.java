@@ -482,7 +482,7 @@ public class ConventionalMode implements CommandLineRunner {
         String raceCountKey = (String) redisTemplate.opsForHash().get("match-open", "raceCountKey");
         Integer raceMaxCount = (Integer) redisTemplate.opsForHash().get("match-open", "raceMaxCount");
         if (raceCountKey != null && raceMaxCount != null) {
-            Integer count = (Integer) redisTemplate.opsForHash().get(raceCountKey, "matchCount");
+            Integer count = (Integer) redisTemplate.opsForHash().get(raceCountKey, userid);
             if (count != null) {
                 if (count >= raceMaxCount) {
                     sendMessageById(userid, "RacePlayerMaxCount");
@@ -540,7 +540,6 @@ public class ConventionalMode implements CommandLineRunner {
                 if (matchQueue.size() >= 2) {
                     String player1 = matchQueue.take();
                     String player2 = matchQueue.take();
-                    log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
 
                     String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
                     String raceCountKey = (String) redisTemplate.opsForHash().get("match-open", "raceCountKey");
@@ -548,15 +547,21 @@ public class ConventionalMode implements CommandLineRunner {
                         if (Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(raceCombKey, player1 + "-" + player2))
                                 || Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(raceCombKey, player2 + "-" + player1))) {
                             // 该2个米米号已经匹配过
-                            matchQueue.add(player1);
-                            matchQueue.add(player2);
+                            if (LoginerWS.checkSession(player1)) {
+                                matchQueue.add(player1);
+                            }
+                            if (LoginerWS.checkSession(player2)) {
+                                matchQueue.add(player2);
+                            }
                         } else {
+                            log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
                             createConventional(player1, player2);
                             redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "matched");
                             redisTemplate.opsForHash().increment(raceCountKey, player1, 1L);
                             redisTemplate.opsForHash().increment(raceCountKey, player2, 1L);
                         }
                     } else {
+                        log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
                         createConventional(player1, player2);
                     }
                 }

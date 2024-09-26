@@ -55,7 +55,7 @@ public class GameInformationServiceImpl implements GameInformationService{
     do {
       gameId.delete(0,gameId.length());
       //生成随机对局号
-      for (int i =0; i < 11 ; ++i) {
+      for (int i =0; i < 16 ; ++i) {
         int nextInt = random.nextInt(10);
         gameId.append(nextInt);
       }
