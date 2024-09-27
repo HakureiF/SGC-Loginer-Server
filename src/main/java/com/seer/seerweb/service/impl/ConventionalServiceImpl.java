@@ -117,7 +117,7 @@ public class ConventionalServiceImpl implements ConventionalService {
                         racegroupService.initElfPool(racegroup.getGroupId(), racegroup.getPickElfList());
                     }
                 }
-                racegroupService.initLimitPool(racegroup.getGroupId(), racegroup.getLimitPool(), racegroup.getAwardPool());
+                racegroupService.initLimitPool(racegroup.getGroupId(), racegroup.getLimitPool(), racegroup.getAwardPool(), racegroup.getPunishPool());
                 List<Integer> elfBan = new ArrayList<>();
                 if(EnableOfficialBan.equals("enable")){
                     //公ban开启
@@ -245,13 +245,60 @@ public class ConventionalServiceImpl implements ConventionalService {
                 }
                 if (Objects.equals(redisTemplate.opsForHash().get(gameId, "Player1"), userid)){
                     redisTemplate.opsForHash().put(gameId, "Player1PetState", JSON.toJSONString(vo));
+                    calcStoreScore(gameId, "Player1", vo);
                 } else if (Objects.equals(redisTemplate.opsForHash().get(gameId, "Player2"), userid)) {
                     redisTemplate.opsForHash().put(gameId, "Player2PetState", JSON.toJSONString(vo));
+                    calcStoreScore(gameId, "Player2", vo);
                 }
             }
             return "";
         }
         return "未知错误";
+    }
+
+    private void calcStoreScore(String gameId, String side, List<BagPetVO> vo) {
+        String raceScoreKey = (String) redisTemplate.opsForHash().get("match-open", "raceScoreKey");
+        Integer initialScore = (Integer) redisTemplate.opsForHash().get("match-open", "initialScore");
+        String groupId = (String) redisTemplate.opsForHash().get(gameId, "groupId");
+        if (raceScoreKey != null && initialScore != null) {
+            int score = initialScore;
+            Set<String> punishKeys = redisTemplate.keys("Group" + groupId + "Punish" + "*");
+            if (punishKeys != null) {
+                for (BagPetVO pet: vo) {
+                    for (String punishKey : punishKeys) {
+                        if (Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(punishKey, String.valueOf(pet.getId())))) {
+                            int tmp = punishKey.lastIndexOf("Punish");
+                            if (tmp > 0) {
+                                int scorePunish = Integer.parseInt(punishKey.substring(tmp + 6));
+                                score -= scorePunish;
+                            }
+                        }
+                    }
+                }
+            }
+            Set<String> awardKeys = redisTemplate.keys("Group" + groupId + "Award" + "*");
+            if (awardKeys != null) {
+                for (BagPetVO pet: vo) {
+                    for (String awardKey : awardKeys) {
+                        if (Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(awardKey, String.valueOf(pet.getId())))) {
+                            int tmp = awardKey.lastIndexOf("Award");
+                            if (tmp > 0) {
+                                int scoreAward = Integer.parseInt(awardKey.substring(tmp + 5));
+                                score += scoreAward;
+                            }
+                        }
+                    }
+                }
+            }
+            String player1 = (String) redisTemplate.opsForHash().get(gameId, "Player1");
+            String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
+            if (side.equals("Player1")) {
+                redisTemplate.opsForHash().put(raceScoreKey, player1 + "-" + player2, score);
+            }
+            if (side.equals("Player2")) {
+                redisTemplate.opsForHash().put(raceScoreKey, player2 + "-" + player1, score);
+            }
+        }
     }
 
     @Override

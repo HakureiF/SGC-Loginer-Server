@@ -49,7 +49,7 @@ public class RacegroupServiceImpl extends ServiceImpl<RacegroupMapper, Racegroup
     }
 
     @Override
-    public void initLimitPool(String groupId, String limitstr, String awardstr) {
+    public void initLimitPool(String groupId, String limitstr, String awardstr, String punishStr) {
         if (limitstr != null && !limitstr.isEmpty()) {
             Map<String, JSONArray> limit = JSON.parseObject(limitstr, Map.class);
             for (Map.Entry<String, JSONArray> entry : limit.entrySet()) {
@@ -77,6 +77,18 @@ public class RacegroupServiceImpl extends ServiceImpl<RacegroupMapper, Racegroup
                         redisTemplate.opsForSet().add("Group" + groupId + "Award" + curr, String.valueOf(id));
                     }
                     redisTemplate.expire("Group" + groupId + "Award" + curr, 12, TimeUnit.HOURS);
+                }
+            }
+        }
+
+        if (punishStr != null && !punishStr.isEmpty()) {
+            Map<String, JSONArray> punish = JSON.parseObject(punishStr, Map.class);
+            for(int curr=1; curr<50; curr++){
+                if (punish.containsKey("punish" + curr) && Boolean.FALSE.equals(redisTemplate.hasKey("Group" + groupId + "Punish" + curr))) {
+                    for (Object id : punish.get("punish" + curr)) {
+                        redisTemplate.opsForSet().add("Group" + groupId + "Punish" + curr, String.valueOf(id));
+                    }
+                    redisTemplate.expire("Group" + groupId + "Punish" + curr, 12, TimeUnit.HOURS);
                 }
             }
         }

@@ -102,7 +102,7 @@ public class GameInformationServiceImpl implements GameInformationService{
         racegroupService.initElfPool(racegroup.getGroupId(), racegroup.getPickElfList());
       }
     }
-    racegroupService.initLimitPool(racegroup.getGroupId(), racegroup.getLimitPool(), racegroup.getAwardPool());
+    racegroupService.initLimitPool(racegroup.getGroupId(), racegroup.getLimitPool(), racegroup.getAwardPool(), racegroup.getPunishPool());
     // 设置过期时间
     redisTemplate.expire("game" + id,configContent.getGameTime(), TimeUnit.HOURS);
     redisTemplate.expire("game" + userid,configContent.getGameTime(),TimeUnit.HOURS);

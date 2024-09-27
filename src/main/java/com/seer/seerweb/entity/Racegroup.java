@@ -87,6 +87,9 @@ public class Racegroup implements Serializable {
     @TableField("RemainCountTime")
     private Integer remainCountTime;
 
+    @TableField("PunishPool")
+    private String punishPool; //
+
     @Serial
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
