@@ -13,6 +13,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -590,5 +591,9 @@ public class ConventionalMode implements CommandLineRunner {
         ResultUtil<String> resultObj = gameInformationService.joinConventionalGame(player2, tmp);
         sendMessageById(player1, "onMatch");
         sendMessageById(player2, "onMatch");
+    }
+
+    public List<String> getMatchPlayers() {
+        return matchQueue.stream().toList();
     }
 }

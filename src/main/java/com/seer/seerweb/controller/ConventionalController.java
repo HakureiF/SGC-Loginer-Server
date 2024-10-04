@@ -1,6 +1,7 @@
 package com.seer.seerweb.controller;
 
 import com.seer.seerweb.annotation.AccessLimit;
+import com.seer.seerweb.component.ConventionalMode;
 import com.seer.seerweb.entity.vo.BagPetVO;
 import com.seer.seerweb.entity.vo.VerifyBagVO;
 import com.seer.seerweb.entity.vo.VerifySuitVO;
@@ -17,6 +18,8 @@ import java.util.Map;
 public class ConventionalController {
     @Autowired
     ConventionalService conventionalService;
+    @Autowired
+    ConventionalMode conventionalMode;
 
     /**
      * 进入房间前：校验背包
@@ -104,6 +107,16 @@ public class ConventionalController {
         try{
             Integer banNum = conventionalService.getBanNum(id);
             return ResultUtil.success(banNum);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultUtil.fail(e.getMessage(), null);
+        }
+    }
+
+    @GetMapping("/getMatchPlayers")
+    public ResultUtil<List<String>> getMatchPlayers() {
+        try {
+            return ResultUtil.success(conventionalMode.getMatchPlayers());
         } catch (Exception e) {
             e.printStackTrace();
             return ResultUtil.fail(e.getMessage(), null);

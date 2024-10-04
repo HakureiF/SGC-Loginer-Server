@@ -27,7 +27,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                   "/api/announcement/getLoginerAnnouncement",
                   "/api/game-information/removeGameCache",
                   "/api/race-group/searchGroup",
-                  "/api/conventional/getMatchScoreBoard"
+                  "/api/conventional/getMatchScoreBoard",
+                  "/api/conventional/getMatchPlayers"
           );
       registry.addInterceptor(defendInterceptor)
           .addPathPatterns("/**");

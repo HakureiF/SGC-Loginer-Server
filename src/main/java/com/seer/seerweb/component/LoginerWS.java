@@ -34,8 +34,8 @@ public class LoginerWS implements WebSocketHandler {
       loginerSessions.put(userid, session);
       log.info("用户" + userid + "登录登录器");
       String token = tokenGenerator.generator(userid, "loginer");
+      Thread.sleep(500);
       sendMessageById(userid, "token:" + AesUtil.encrypt(token,configContent.getAesKey()));
-      Thread.sleep(1000);
       String gameInfo = checkGameInformation(userid);
       if(gameInfo != null) {
         if (gameInfo.equals("Conventional")) {
