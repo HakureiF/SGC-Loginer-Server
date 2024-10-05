@@ -530,6 +530,7 @@ public class ConventionalMode implements CommandLineRunner {
         log.info("Init Conventional Match Queue");
         Executors.newSingleThreadExecutor().execute(new Thread(this::executeThread));
         Executors.newSingleThreadExecutor().execute(new Thread(this::heartbeatThread));
+        Executors.newSingleThreadExecutor().execute(new Thread(this::matchTimeIns));
     }
 
     private void executeThread() {
@@ -544,15 +545,39 @@ public class ConventionalMode implements CommandLineRunner {
 
                     String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
                     String raceCountKey = (String) redisTemplate.opsForHash().get("match-open", "raceCountKey");
-                    if (raceCombKey != null && raceCountKey != null) {
-                        if (Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(raceCombKey, player1 + "-" + player2))
-                                || Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(raceCombKey, player2 + "-" + player1))) {
+                    Integer raceMatchTimeout = (Integer) redisTemplate.opsForHash().get("match-open", "raceMatchTimeout");
+                    if (raceCombKey != null && raceCountKey != null && raceMatchTimeout != null) {
+                        boolean comb1 = Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(raceCombKey, player1 + "-" + player2));
+                        boolean comb2 = Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey(raceCombKey, player2 + "-" + player1));
+                        if (comb1 || comb2) {
                             // 该2个米米号已经匹配过
-                            if (LoginerWS.checkSession(player1)) {
-                                matchQueue.add(player1);
-                            }
-                            if (LoginerWS.checkSession(player2)) {
-                                matchQueue.add(player2);
+                            Integer player1Time = (Integer) redisTemplate.opsForHash().get("matchTime", player1);
+                            Integer player2Time = (Integer) redisTemplate.opsForHash().get("matchTime", player2);
+                            if (player1Time != null && player2Time != null
+                                    && player1Time > raceMatchTimeout && player2Time > raceMatchTimeout
+                                    && !(comb1 && comb2)) {
+                                // 2个米米号都匹配累计超过给定的时间，并且没有重复标记
+                                if (comb1) {
+                                    log.info("匹配player1：{}, 匹配player2：{}", player2, player1);
+                                    createConventional(player2, player1);
+                                    redisTemplate.opsForHash().put(raceCombKey, player2 + "-" + player1, "matched");
+                                } else {
+                                    log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
+                                    createConventional(player1, player2);
+                                    redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "matched");
+                                }
+                                redisTemplate.opsForHash().increment(raceCountKey, player1, 1L);
+                                redisTemplate.opsForHash().increment(raceCountKey, player2, 1L);
+                                redisTemplate.opsForHash().put("matchTime", player1, 0);
+                                redisTemplate.opsForHash().put("matchTime", player2, 0);
+                            } else {
+                                // 2个米米号没有都匹配累计超过给定的时间，或者已经用完重复次数
+                                if (LoginerWS.checkSession(player1)) {
+                                    matchQueue.add(player1);
+                                }
+                                if (LoginerWS.checkSession(player2)) {
+                                    matchQueue.add(player2);
+                                }
                             }
                         } else {
                             log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
@@ -560,10 +585,14 @@ public class ConventionalMode implements CommandLineRunner {
                             redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "matched");
                             redisTemplate.opsForHash().increment(raceCountKey, player1, 1L);
                             redisTemplate.opsForHash().increment(raceCountKey, player2, 1L);
+                            redisTemplate.opsForHash().put("matchTime", player1, 0);
+                            redisTemplate.opsForHash().put("matchTime", player2, 0);
                         }
                     } else {
                         log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
                         createConventional(player1, player2);
+                        redisTemplate.opsForHash().put("matchTime", player1, 0);
+                        redisTemplate.opsForHash().put("matchTime", player2, 0);
                     }
                 }
                 Thread.sleep(1000);
@@ -578,6 +607,19 @@ public class ConventionalMode implements CommandLineRunner {
             try {
                 Thread.sleep(10000);
                 heartbeatAll();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void matchTimeIns() {
+        while (true) {
+            try {
+                Thread.sleep(1000);
+                for (String player: matchQueue) {
+                    redisTemplate.opsForHash().increment("matchTime", player, 1L);
+                }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
