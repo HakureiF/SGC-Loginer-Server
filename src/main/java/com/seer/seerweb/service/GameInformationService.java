@@ -14,7 +14,7 @@ import java.util.List;
  * The interface Game information service.
  */
 public interface GameInformationService {
-  HashMap<String,String> generateConventionalGame(String groupId,String userid);
+  HashMap<String,String> generateConventionalGame(String groupId,String userid, String conventionalMode);
   List<String> getPickList(String userid,String gameId,String playerId);
   ResultUtil<String> exitGame(String id);
   ResultUtil<String> joinConventionalGame(String id, HashMap<String, String> gameInfo);

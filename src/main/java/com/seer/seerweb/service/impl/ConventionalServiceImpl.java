@@ -257,10 +257,10 @@ public class ConventionalServiceImpl implements ConventionalService {
     }
 
     private void calcStoreScore(String gameId, String side, List<BagPetVO> vo) {
-        String raceScoreKey = (String) redisTemplate.opsForHash().get("match-open", "raceScoreKey");
+//        String raceScoreKey = (String) redisTemplate.opsForHash().get("match-open", "raceScoreKey");
         Integer initialScore = (Integer) redisTemplate.opsForHash().get("match-open", "initialScore");
         String groupId = (String) redisTemplate.opsForHash().get(gameId, "groupId");
-        if (raceScoreKey != null && initialScore != null) {
+        if (initialScore != null) {
             int score = initialScore;
             Set<String> punishKeys = redisTemplate.keys("Group" + groupId + "Punish" + "*");
             if (punishKeys != null) {
@@ -290,13 +290,15 @@ public class ConventionalServiceImpl implements ConventionalService {
                     }
                 }
             }
-            String player1 = (String) redisTemplate.opsForHash().get(gameId, "Player1");
-            String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
+//            String player1 = (String) redisTemplate.opsForHash().get(gameId, "Player1");
+//            String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
             if (side.equals("Player1")) {
-                redisTemplate.opsForHash().put(raceScoreKey, player1 + "-" + player2, score);
+//                redisTemplate.opsForHash().put(raceScoreKey, player1 + "-" + player2, score);
+                redisTemplate.opsForHash().put(gameId, "player1Score", score);
             }
             if (side.equals("Player2")) {
-                redisTemplate.opsForHash().put(raceScoreKey, player2 + "-" + player1, score);
+//                redisTemplate.opsForHash().put(raceScoreKey, player2 + "-" + player1, score);
+                redisTemplate.opsForHash().put(gameId, "player2Score", score);
             }
         }
     }

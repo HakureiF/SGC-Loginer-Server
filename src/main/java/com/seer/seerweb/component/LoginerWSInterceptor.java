@@ -34,7 +34,7 @@ public class LoginerWSInterceptor implements HandshakeInterceptor {
       String userid = servletRequest.getParameter("userid");
       String version = servletRequest.getParameter("version");
       log.info(userid + " Try to connect");
-      if (version == null || !version.equals("1.1.5")) {
+      if (version == null || !version.equals("1.1.6")) {
         return false;
       }
       if (userid.startsWith("seeraccount")){

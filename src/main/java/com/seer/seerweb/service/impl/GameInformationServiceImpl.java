@@ -45,7 +45,7 @@ public class GameInformationServiceImpl implements GameInformationService{
    */
   @Override
 //  public HashMap<String, String> generateConventionalGame(HashMap<String, Object> option, String userid) {
-  public HashMap<String, String> generateConventionalGame(String groupId, String userid) {
+  public HashMap<String, String> generateConventionalGame(String groupId, String userid, String conventionalMode) {
     if (Boolean.TRUE.equals(redisTemplate.hasKey("game" + userid))) {
       return null;
     }
@@ -80,6 +80,7 @@ public class GameInformationServiceImpl implements GameInformationService{
     redisTemplate.opsForHash().put("game" + id,"Player2","");
     redisTemplate.opsForHash().put("game" + userid,"type","Player1");
     redisTemplate.opsForHash().put("game" + userid,"WinCount",0);
+    redisTemplate.opsForHash().put("game" + id,"conventionalMode", conventionalMode);
 
     redisTemplate.opsForHash().put("game" + id,"num",1);
     redisTemplate.opsForHash().put("game" + id,"CurrentPeriod",1);
@@ -147,6 +148,13 @@ public class GameInformationServiceImpl implements GameInformationService{
     redisTemplate.opsForHash().put("game" + id,"gameId",gameId);
     redisTemplate.expire("game" + id,configContent.getGameTime(),TimeUnit.HOURS);
     redisTemplate.opsForHash().put(gameId,"num", ++num);
+    redisTemplate.opsForHash().put(gameId, "fightResult", "matched");
+    if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "race")) {
+      String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
+      if (raceCombKey != null) {
+        redisTemplate.opsForHash().put(raceCombKey, redisTemplate.opsForHash().get(gameId, "Player1") + "-" + id, gameId);
+      }
+    }
     if (!Objects.equals(redisTemplate.opsForHash().get(gameId, "Player1"), "")
         && !Objects.equals(redisTemplate.opsForHash().get(gameId, "Player2"), "")
     ) {
@@ -247,7 +255,9 @@ public class GameInformationServiceImpl implements GameInformationService{
               }
               redisTemplate.delete("game" + Player1);
               redisTemplate.delete("game" + Player2);
-              redisTemplate.delete(gameId);
+              if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
+                redisTemplate.delete(gameId);
+              }
               LoginerWS.sendMessageById(Player2, "offLine");
             }
           } else if (Player1 != null && Player2 != null && id.contains(Player2)) {
@@ -266,7 +276,9 @@ public class GameInformationServiceImpl implements GameInformationService{
               }
               redisTemplate.delete("game" + Player1);
               redisTemplate.delete("game" + Player2);
-              redisTemplate.delete(gameId);
+              if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
+                redisTemplate.delete(gameId);
+              }
               LoginerWS.sendMessageById(Player1, "offLine");
             }
           }
@@ -283,7 +295,9 @@ public class GameInformationServiceImpl implements GameInformationService{
             redisTemplate.delete("BanElfList" + Player2);
             redisTemplate.delete("game" + Player1);
             redisTemplate.delete("game" + Player2);
-            redisTemplate.delete(gameId);
+            if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
+              redisTemplate.delete(gameId);
+            }
             return ResultUtil.success();
           } else {
             redisTemplate.opsForHash().put(gameId, type, "");

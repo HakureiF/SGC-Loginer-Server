@@ -13,7 +13,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -343,16 +342,22 @@ public class ConventionalMode implements CommandLineRunner {
                     redisTemplate.opsForHash().put("ScoreBoard" + groupId, mimiId, 1000 + score);
                 }
 
-
-                String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
-                if (raceCombKey != null) {
-                    String player1 = (String) redisTemplate.opsForHash().get(gameId, "Player1");
-                    String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
-                    if (player1 != null && player2 != null) {
-                        String side = player1.equals(userid) ? "player1": "player2";
-                        redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, side + "Win");
-                    }
+                String player1 = (String) redisTemplate.opsForHash().get(gameId, "Player1");
+                String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
+                if (player1 != null && player2 != null) {
+                    String side = player1.equals(userid) ? "player1": "player2";
+                    redisTemplate.opsForHash().put(gameId, "fightResult", side + "Win");
                 }
+
+
+//                String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
+//                if (raceCombKey != null) {
+//
+//                    if (player1 != null && player2 != null) {
+//                        String side = player1.equals(userid) ? "player1": "player2";
+//                        redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, side + "Win");
+//                    }
+//                }
             }
         }
     }
@@ -363,7 +368,9 @@ public class ConventionalMode implements CommandLineRunner {
             if (gameId != null) {
                 if (Objects.equals(userid, (String)redisTemplate.opsForHash().get(gameId, "Player1"))) {
                     sendMessageById(userid, "shutRoom");
-                    redisTemplate.delete(gameId);
+                    if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
+                        redisTemplate.delete(gameId);
+                    }
                 } else {
                     sendMessageById(userid, "quitRoom");
                 }
@@ -559,12 +566,12 @@ public class ConventionalMode implements CommandLineRunner {
                                 // 2个米米号都匹配累计超过给定的时间，并且没有重复标记
                                 if (comb1) {
                                     log.info("匹配player1：{}, 匹配player2：{}", player2, player1);
-                                    createConventional(player2, player1);
-                                    redisTemplate.opsForHash().put(raceCombKey, player2 + "-" + player1, "matched");
+                                    createConventional(player2, player1, "race");
+//                                    redisTemplate.opsForHash().put(raceCombKey, player2 + "-" + player1, "matched");
                                 } else {
                                     log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
-                                    createConventional(player1, player2);
-                                    redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "matched");
+                                    createConventional(player1, player2, "race");
+//                                    redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "matched");
                                 }
                                 redisTemplate.opsForHash().increment(raceCountKey, player1, 1L);
                                 redisTemplate.opsForHash().increment(raceCountKey, player2, 1L);
@@ -581,8 +588,8 @@ public class ConventionalMode implements CommandLineRunner {
                             }
                         } else {
                             log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
-                            createConventional(player1, player2);
-                            redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "matched");
+                            createConventional(player1, player2, "race");
+//                            redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "matched");
                             redisTemplate.opsForHash().increment(raceCountKey, player1, 1L);
                             redisTemplate.opsForHash().increment(raceCountKey, player2, 1L);
                             redisTemplate.opsForHash().put("matchTime", player1, 0);
@@ -590,7 +597,7 @@ public class ConventionalMode implements CommandLineRunner {
                         }
                     } else {
                         log.info("匹配player1：{}, 匹配player2：{}", player1, player2);
-                        createConventional(player1, player2);
+                        createConventional(player1, player2, "common");
                         redisTemplate.opsForHash().put("matchTime", player1, 0);
                         redisTemplate.opsForHash().put("matchTime", player2, 0);
                     }
@@ -626,10 +633,10 @@ public class ConventionalMode implements CommandLineRunner {
         }
     }
 
-    private void createConventional(String player1, String player2) {
+    private void createConventional(String player1, String player2, String conventionalMode) {
         String groupId = (String) redisTemplate.opsForHash().get("match-open", "groupId");
         if (groupId == null) return;
-        HashMap<String, String> tmp = gameInformationService.generateConventionalGame(groupId, player1);
+        HashMap<String, String> tmp = gameInformationService.generateConventionalGame(groupId, player1, conventionalMode);
         ResultUtil<String> resultObj = gameInformationService.joinConventionalGame(player2, tmp);
         sendMessageById(player1, "onMatch");
         sendMessageById(player2, "onMatch");

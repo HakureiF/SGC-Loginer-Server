@@ -75,7 +75,7 @@ public class GameInformationController {
     } else {
       // 设置用户对战状态
 //      HashMap<String, String> hashMap = gameInformationService.generateConventionalGame(option, id);
-      HashMap<String, String> hashMap = gameInformationService.generateConventionalGame(groupId, id);
+      HashMap<String, String> hashMap = gameInformationService.generateConventionalGame(groupId, id, "common");
       if (hashMap != null) {
         return ResultUtil.success(hashMap);
       } else {
@@ -346,7 +346,9 @@ public class GameInformationController {
     LoginerWS.removeSession(userid);
     String gameId = (String) redisTemplate.opsForHash().get("game" + userid, "gameId");
     if (gameId != null) {
-      redisTemplate.delete(gameId);
+      if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
+        redisTemplate.delete(gameId);
+      }
       redisTemplate.delete("PickElfList" + userid);
       redisTemplate.delete("BanElfList" + userid);
       redisTemplate.delete("game" + userid);
