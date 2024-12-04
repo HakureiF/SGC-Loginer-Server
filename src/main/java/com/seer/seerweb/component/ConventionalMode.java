@@ -308,7 +308,7 @@ public class ConventionalMode implements CommandLineRunner {
         redisTemplate.opsForHash().put(gameId, "phase", "PreparationStage");
 
 
-        if (Objects.equals(mes.substring(8), "True")){
+        if (Objects.equals(mes.substring(8), "True") || Objects.equals(mes.substring(8), "true")){
             //判断胜利双方
             if (userid.startsWith("seeraccount")) {
                 String groupId = (String) redisTemplate.opsForHash().get(gameId, "groupId");
