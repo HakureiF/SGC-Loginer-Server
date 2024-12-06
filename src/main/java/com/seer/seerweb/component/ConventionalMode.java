@@ -309,11 +309,12 @@ public class ConventionalMode implements CommandLineRunner {
 
 
         if (Objects.equals(mes.substring(8), "True") || Objects.equals(mes.substring(8), "true")){
-            //判断胜利双方
-            if (userid.startsWith("seeraccount")) {
+            // 判断胜利双方
+            if (Objects.equals(redisTemplate.opsForHash().get(gameId, "matchMark"), "enable")) {
+                // 只统计匹配对局的数据
                 String groupId = (String) redisTemplate.opsForHash().get(gameId, "groupId");
                 if (groupId == null) return;
-                //统计精灵数据
+                // 统计精灵数据
                 String player1StateStr = (String) redisTemplate.opsForHash().get(gameId, "Player1PetState");
                 String player2StateStr = (String) redisTemplate.opsForHash().get(gameId, "Player2PetState");
                 if (player1StateStr != null) {
@@ -349,60 +350,23 @@ public class ConventionalMode implements CommandLineRunner {
                     redisTemplate.opsForHash().put(gameId, "fightResult", side + "Win");
                 }
 
-
-//                String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
-//                if (raceCombKey != null) {
-//
-//                    if (player1 != null && player2 != null) {
-//                        String side = player1.equals(userid) ? "player1": "player2";
-//                        redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, side + "Win");
-//                    }
-//                }
             }
         }
     }
 
     public void afterFightOverClick(String userid) {
-        if (userid.startsWith("seeraccount")) {
-            String gameId = (String) redisTemplate.opsForHash().get("game" + userid, "gameId");
-            if (gameId != null) {
-                if (Objects.equals(userid, (String)redisTemplate.opsForHash().get(gameId, "Player1"))) {
-                    sendMessageById(userid, "shutRoom");
-                    if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
-                        redisTemplate.delete(gameId);
-                    }
-                } else {
-                    sendMessageById(userid, "quitRoom");
+        String gameId = (String) redisTemplate.opsForHash().get("game" + userid, "gameId");
+        if (gameId != null) {
+            if (Objects.equals(userid, (String)redisTemplate.opsForHash().get(gameId, "Player1"))) {
+                sendMessageById(userid, "shutRoom");
+                if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
+                    redisTemplate.delete(gameId);
                 }
+            } else {
+                sendMessageById(userid, "quitRoom");
             }
-            redisTemplate.delete("game" + userid);
-
-
-
-//            List<String> pick = redisTemplate.opsForList().range("PickElfList" + userid,0,-1);
-//            List<String> ban = redisTemplate.opsForList().range("BanElfList" + userid,0,-1);
-//            try {
-//                for (String id:pick) {
-//                    if (redisTemplate.opsForHash().get("PickStatistics", id) != null){
-//                        redisTemplate.opsForHash().put("PickStatistics", id, (Integer) redisTemplate.opsForHash().get("PickStatistics", id) +1);
-//                    } else {
-//                        redisTemplate.opsForHash().put("PickStatistics", id, 1);
-//                    }
-//                }
-//                for (String id:ban) {
-//                    if (redisTemplate.opsForHash().get("BanStatistics", id) != null){
-//                        redisTemplate.opsForHash().put("BanStatistics", id, (Integer) redisTemplate.opsForHash().get("BanStatistics", id) +1);
-//                    } else {
-//                        redisTemplate.opsForHash().put("BanStatistics", id, 1);
-//                    }
-//                }
-//            } catch (Exception e){
-//                log.error("存取精灵bp数据异常");
-//                e.printStackTrace();
-//            }
         }
-        redisTemplate.delete("PickElfList" + userid);
-        redisTemplate.delete("BanElfList" + userid);
+        redisTemplate.delete("game" + userid);
     }
 
     public void endGame(String userid){
@@ -636,7 +600,7 @@ public class ConventionalMode implements CommandLineRunner {
     private void createConventional(String player1, String player2, String conventionalMode) {
         String groupId = (String) redisTemplate.opsForHash().get("match-open", "groupId");
         if (groupId == null) return;
-        HashMap<String, String> tmp = gameInformationService.generateConventionalGame(groupId, player1, conventionalMode);
+        HashMap<String, String> tmp = gameInformationService.generateConventionalGame(groupId, player1, conventionalMode, true);
         ResultUtil<String> resultObj = gameInformationService.joinConventionalGame(player2, tmp);
         sendMessageById(player1, "onMatch");
         sendMessageById(player2, "onMatch");

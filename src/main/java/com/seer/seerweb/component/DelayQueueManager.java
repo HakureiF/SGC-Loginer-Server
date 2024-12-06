@@ -238,42 +238,15 @@ public class DelayQueueManager implements CommandLineRunner {
       String userId = phase.substring(12); //掉线人id
       String player1 = (String) redisTemplate.opsForHash().get(gameId, "Player1");
       String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
-      String groupId = (String) redisTemplate.opsForHash().get(gameId, "groupId");
-
-//      String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");
-      if (player1 != null && player2 != null&& player2.equals(userId) && groupId != null) {
-        // 红方掉线
-        gameInformationService.exitGame("game" + player2);
-        redisTemplate.opsForHash().put(gameId, "fightResult", "player2Offline");
-//        if (raceCombKey != null) {
-//          redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "player2Offline");
-//        }
-//        String mimiId = player1.substring(11);
-//        int score = 15;
-//        List<BagPetVO> mypetState = JSON.parseArray((String) redisTemplate.opsForHash().get(gameId, "Player1PetState"), BagPetVO.class);
-//        score -= conventionalService.scoreReduced(groupId, mypetState);
-//        if (Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey("ScoreBoard" + groupId, mimiId))) {
-//          redisTemplate.opsForHash().increment("ScoreBoard" + groupId, mimiId, score);
-//        } else {
-//          redisTemplate.opsForHash().put("ScoreBoard" + groupId, mimiId, 1000 + score);
-//        }
-      }
-      if (player1 != null && player2 != null&& player1.equals(userId) && groupId != null) {
+      if (player1 != null && player1.equals(userId)) {
         // 蓝方掉线
         gameInformationService.exitGame("game" + player1);
         redisTemplate.opsForHash().put(gameId, "fightResult", "player2Offline");
-//        if (raceCombKey != null) {
-//          redisTemplate.opsForHash().put(raceCombKey, player1 + "-" + player2, "player1Offline");
-//        }
-//        String mimiId = player2.substring(11);
-//        int score = 15;
-//        List<BagPetVO> mypetState = JSON.parseArray((String) redisTemplate.opsForHash().get(gameId, "Player2PetState"), BagPetVO.class);
-//        score -= conventionalService.scoreReduced(groupId, mypetState);
-//        if (Boolean.TRUE.equals(redisTemplate.opsForHash().hasKey("ScoreBoard" + groupId, mimiId))) {
-//          redisTemplate.opsForHash().increment("ScoreBoard" + groupId, mimiId, score);
-//        } else {
-//          redisTemplate.opsForHash().put("ScoreBoard" + groupId, mimiId, 1000 + score);
-//        }
+      }
+      if (player2 != null&& player2.equals(userId)) {
+        // 红方掉线
+        gameInformationService.exitGame("game" + player2);
+        redisTemplate.opsForHash().put(gameId, "fightResult", "player2Offline");
       }
 //      LoginerWS.sendMessageById(player1, "offLine");
 //      LoginerWS.sendMessageById(player2, "offLine");

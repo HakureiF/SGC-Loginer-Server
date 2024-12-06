@@ -6,15 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 
 
-/**
- * @author Glory.
- *
- * {@code @description} 针对表【GameInformation】的数据库操作Service
- * {@code @createDate} 2023-06-22 22:59:49
- * The interface Game information service.
- */
+
 public interface GameInformationService {
-  HashMap<String,String> generateConventionalGame(String groupId,String userid, String conventionalMode);
+  HashMap<String,String> generateConventionalGame(String groupId,String userid, String conventionalMode, boolean isMatch);
   List<String> getPickList(String userid,String gameId,String playerId);
   ResultUtil<String> exitGame(String id);
   ResultUtil<String> joinConventionalGame(String id, HashMap<String, String> gameInfo);

@@ -75,7 +75,7 @@ public class GameInformationController {
     } else {
       // 设置用户对战状态
 //      HashMap<String, String> hashMap = gameInformationService.generateConventionalGame(option, id);
-      HashMap<String, String> hashMap = gameInformationService.generateConventionalGame(groupId, id, "common");
+      HashMap<String, String> hashMap = gameInformationService.generateConventionalGame(groupId, id, "common", false);
       if (hashMap != null) {
         return ResultUtil.success(hashMap);
       } else {
@@ -182,13 +182,13 @@ public class GameInformationController {
       HashMap<String, String> hashMap = new HashMap<>();
       String player1Userid =  (String) redisTemplate.opsForHash().get(gameId, "Player1");
       String player2Userid =  (String) redisTemplate.opsForHash().get(gameId, "Player2");
-      if (player1Userid != null && player1Userid.startsWith("seeraccount")) {
-        hashMap.put("Player1", "player1");
+      if (player1Userid != null && player1Userid.contains("seeraccount")) {
+        hashMap.put("Player1", player1Userid.replace("seeraccount", ""));
       } else {
         hashMap.put("Player1", userInformationService.getNickNameById(player1Userid));
       }
-      if (player2Userid != null && player2Userid.startsWith("seeraccount")){
-        hashMap.put("Player2", "player2");
+      if (player2Userid != null && player2Userid.contains("seeraccount")){
+        hashMap.put("Player2", player2Userid.replace("seeraccount", ""));
       } else {
         hashMap.put("Player2", userInformationService.getNickNameById(player2Userid));
       }

@@ -106,6 +106,18 @@ public class LoginerWS implements WebSocketHandler {
     if (mes.contains("QuitMatch")){
       conventionalMode.quitMatch(userid);
     }
+    if (mes.startsWith("tokenGot")){
+      String modMark = mes.substring(8);
+      if (modMark.equals("Match")) {
+        sendMessageById(userid, "matchJoin");
+      }
+      if (modMark.equals("Create")) {
+        sendMessageById(userid, "gameCreate");
+      }
+      if (modMark.equals("Join")) {
+        sendMessageById(userid, "gameJoin");
+      }
+    }
   }
 
   @Override
@@ -125,7 +137,7 @@ public class LoginerWS implements WebSocketHandler {
     conventionalMode.quitMatch(userid);
     log.info("用户" + userid + "登录器下线");
 
-    if (userid.startsWith("seeraccount")){
+    if (userid.contains("seeraccount")){
       conventionalMode.offLineWhenMatch(userid);
     }
   }
@@ -163,7 +175,7 @@ public class LoginerWS implements WebSocketHandler {
 
   // 连接前检查连接会话，若会话存在则关闭会话，会话不存在则返回True
   public static boolean checkLoginerState(String userid) {
-    if (userid.startsWith("seeraccount") && loginerSessions.containsKey(userid)) {
+    if (loginerSessions.containsKey(userid)) {
       synchronized (loginerSessions.get(userid)) {
         try {
           loginerSessions.get(userid).close();
@@ -220,7 +232,7 @@ public class LoginerWS implements WebSocketHandler {
    * 强制移出session
    */
   public static void removeSession(String userid) {
-    if (userid.startsWith("seeraccount")) {
+    if (userid.contains("seeraccount")) {
       loginerSessions.remove(userid);
     }
   }

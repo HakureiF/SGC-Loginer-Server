@@ -21,11 +21,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-/**
-* @author Glory
-* {@code @description} 针对表【GameInformation】的数据库操作Service实现
-* {@code @createDate} 2023-06-22 22:59:49
- */
+
 @Service
 @Log
 public class GameInformationServiceImpl implements GameInformationService{
@@ -40,12 +36,14 @@ public class GameInformationServiceImpl implements GameInformationService{
 
 
   /**
+   * @param groupId
    * @param userid
+   * @param conventionalMode 对局模式 common or race，比赛模式race下对局结束后不会删除缓存数据
    * @return
    */
   @Override
 //  public HashMap<String, String> generateConventionalGame(HashMap<String, Object> option, String userid) {
-  public HashMap<String, String> generateConventionalGame(String groupId, String userid, String conventionalMode) {
+  public HashMap<String, String> generateConventionalGame(String groupId, String userid, String conventionalMode, boolean isMatch) {
     if (Boolean.TRUE.equals(redisTemplate.hasKey("game" + userid))) {
       return null;
     }
@@ -96,6 +94,7 @@ public class GameInformationServiceImpl implements GameInformationService{
     redisTemplate.opsForHash().put("game" + id, "banCountTime", racegroup.getBanCountTime());
     redisTemplate.opsForHash().put("game" + id, "firstCountTime", racegroup.getFirstCountTime());
     redisTemplate.opsForHash().put("game" + id, "remainCountTime", racegroup.getRemainCountTime());
+    redisTemplate.opsForHash().put("game" + id, "matchMark", isMatch ? "enable" : "disable");
     if(EnableElfPool.equals("enable")){
       if(Boolean.TRUE.equals(redisTemplate.hasKey("Group" + racegroup.getGroupId() + "ElfPool"))){ // 检查redis中有无精灵池，没有则添加
         redisTemplate.expire("Group" + racegroup.getGroupId() + "ElfPool", 24, TimeUnit.HOURS);
@@ -224,11 +223,7 @@ public class GameInformationServiceImpl implements GameInformationService{
       }
       String gameId = (String) redisTemplate.opsForHash().get(id,"gameId");
       if (gameId == null) {
-        if (id.contains("seeraccount")) {
-          redisTemplate.delete("PickElfList" + id.substring(4));
-          redisTemplate.delete("BanElfList" + id.substring(4));
-          redisTemplate.delete(id);
-        }
+        redisTemplate.delete(id);
         return ResultUtil.success();
       }
       String phase = (String) redisTemplate.opsForHash().get(gameId,"phase");
@@ -236,7 +231,7 @@ public class GameInformationServiceImpl implements GameInformationService{
       String Player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
       if (Objects.equals(redisTemplate.opsForHash().get(gameId, "GameMode"), "Conventional")){
         // 12ban3模式
-        if (id.contains("seeraccount")) {
+        if (Objects.equals(redisTemplate.opsForHash().get(gameId, "matchMark"), "enable")) {
           // 匹配模式
           String groupId = (String) redisTemplate.opsForHash().get(gameId, "groupId");
           if (Player1 != null && Player2 != null && id.contains(Player1)) {
@@ -289,10 +284,6 @@ public class GameInformationServiceImpl implements GameInformationService{
           if (type != null && type.equals("Player1")) {
             // 房主退出直接关闭房间
             LoginerWS.sendMessageById(Player2, "endGame");
-            redisTemplate.delete("PickElfList" + Player1);
-            redisTemplate.delete("PickElfList" + Player2);
-            redisTemplate.delete("BanElfList" + Player1);
-            redisTemplate.delete("BanElfList" + Player2);
             redisTemplate.delete("game" + Player1);
             redisTemplate.delete("game" + Player2);
             if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
@@ -302,14 +293,7 @@ public class GameInformationServiceImpl implements GameInformationService{
           } else {
             redisTemplate.opsForHash().put(gameId, type, "");
             redisTemplate.delete(id);
-            Object o = redisTemplate.opsForHash().get(gameId, "num");
-            int num = 0; if (o != null) num = (int) o;
-            redisTemplate.opsForHash().put(gameId, "num", --num);
             redisTemplate.opsForHash().put(gameId,"phase","WaitingStage");
-            redisTemplate.delete("PickElfList" + Player1);
-            redisTemplate.delete("PickElfList" + Player2);
-            redisTemplate.delete("BanElfList" + Player1);
-            redisTemplate.delete("BanElfList" + Player2);
             redisTemplate.delete("game" + Player2);
             LoginerWS.sendMessageById(Player1, "Player1Exit");
             return ResultUtil.success();
