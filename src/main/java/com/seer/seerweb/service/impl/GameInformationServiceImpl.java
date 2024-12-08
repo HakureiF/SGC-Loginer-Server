@@ -80,7 +80,7 @@ public class GameInformationServiceImpl implements GameInformationService{
     redisTemplate.opsForHash().put("game" + userid,"WinCount",0);
     redisTemplate.opsForHash().put("game" + id,"conventionalMode", conventionalMode);
 
-    redisTemplate.opsForHash().put("game" + id,"num",1);
+//    redisTemplate.opsForHash().put("game" + id,"num",1);
     redisTemplate.opsForHash().put("game" + id,"CurrentPeriod",1);
     redisTemplate.opsForHash().put("game" + id,"GameMode",GameMode);
     redisTemplate.opsForHash().put("game" + id,"EnableOfficialBan",EnableOfficialBan);
@@ -128,25 +128,25 @@ public class GameInformationServiceImpl implements GameInformationService{
       log.info("非12ban3模式，请在网页加入");
       return ResultUtil.fail("非12ban3模式，请在网页加入",null);
     }
-    Object o = redisTemplate.opsForHash().get(gameId, "num");
-    int num;
-    if (o != null) {
-      num = (int) o;
-    } else {
-      log.info("人数错误");
-      return ResultUtil.fail("人数错误",null);
-    }
-    if (num == 2) {
-      log.info("人数已满");
-      return ResultUtil.fail("人数已满",null);
-    }
+//    Object o = redisTemplate.opsForHash().get(gameId, "num");
+//    int num;
+//    if (o != null) {
+//      num = (int) o;
+//    } else {
+//      log.info("人数错误");
+//      return ResultUtil.fail("人数错误",null);
+//    }
+//    if (num == 2) {
+//      log.info("人数已满");
+//      return ResultUtil.fail("人数已满",null);
+//    }
     // 加入redis
     redisTemplate.opsForHash().put("game" + id, "type", "Player2");
     redisTemplate.opsForHash().put(gameId,"Player2",id);
     redisTemplate.opsForHash().put("game" + id,"WinCount",0);
     redisTemplate.opsForHash().put("game" + id,"gameId",gameId);
     redisTemplate.expire("game" + id,configContent.getGameTime(),TimeUnit.HOURS);
-    redisTemplate.opsForHash().put(gameId,"num", ++num);
+//    redisTemplate.opsForHash().put(gameId,"num", ++num);
     redisTemplate.opsForHash().put(gameId, "fightResult", "matched");
     if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "race")) {
       String raceCombKey = (String) redisTemplate.opsForHash().get("match-open", "raceCombKey");

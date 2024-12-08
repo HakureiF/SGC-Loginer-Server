@@ -240,13 +240,13 @@ public class DelayQueueManager implements CommandLineRunner {
       String player2 = (String) redisTemplate.opsForHash().get(gameId, "Player2");
       if (player1 != null && player1.equals(userId)) {
         // 蓝方掉线
-        gameInformationService.exitGame("game" + player1);
         redisTemplate.opsForHash().put(gameId, "fightResult", "player2Offline");
+        gameInformationService.exitGame("game" + player1);
       }
       if (player2 != null&& player2.equals(userId)) {
         // 红方掉线
-        gameInformationService.exitGame("game" + player2);
         redisTemplate.opsForHash().put(gameId, "fightResult", "player2Offline");
+        gameInformationService.exitGame("game" + player2);
       }
 //      LoginerWS.sendMessageById(player1, "offLine");
 //      LoginerWS.sendMessageById(player2, "offLine");
