@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.HashMap;
+import java.util.Objects;
+
 @Service
 public class SeerSuitServiceImpl implements SeerSuitService{
   @Autowired
@@ -18,34 +20,29 @@ public class SeerSuitServiceImpl implements SeerSuitService{
   @Override
   public HashMap<String, String> getSuit(String userid,String option) {
     String gameId = (String) redisTemplate.opsForHash().get("game" +  userid,"gameId");
-    String Player1 = "";
-    String Player2 = "";
-    String suit1;
-    String suit2;
-    if (gameId != null) {
-      Player1 = (String) redisTemplate.opsForHash().get(gameId,"Player1");
-      Player2 = (String) redisTemplate.opsForHash().get(gameId,"Player2");
-    }
     HashMap<String,String> hashMap = new HashMap<>();
     if (gameId != null) {
-      suit1 = String.valueOf(redisTemplate.opsForHash().get("game" + Player1, option + "Suit"));
-      suit2 = String.valueOf(redisTemplate.opsForHash().get("game" + Player2, option + "Suit"));
+      String player1Id = (String) redisTemplate.opsForHash().get(gameId,"Player1");
+      String player2Id = (String) redisTemplate.opsForHash().get(gameId,"Player2");
+      String suit1 = String.valueOf(redisTemplate.opsForHash().get("game" + player1Id, option + "Suit"));
+      String suit2 = String.valueOf(redisTemplate.opsForHash().get("game" + player2Id, option + "Suit"));
+      String phase = (String) redisTemplate.opsForHash().get(gameId, option + "Phase");
 
-      String hidePick = (String) redisTemplate.opsForHash().get(gameId, "HidePick");
-      if (suit1.equals("null") || suit1.isBlank()) {
-        suit1 = "";
-      } else if (hidePick != null && option.equals("Pick")){
-        suit1 = hidePick.charAt(0) != '0' ? Player1.equals(userid) ? suit1 : "1" : suit1;
+
+      boolean b = Objects.equals(phase, "PlayerBanElf") || Objects.equals(phase, "PlayerPickElfFirst")
+              && Objects.equals(phase, "PlayerPickElfRemain") && Objects.equals(phase, "WaitingPeriodResult");
+      if (Objects.equals(player1Id, userid)) {
+        hashMap.put("Player1" + option + "Suit", suit1);
+        if (b) {
+          hashMap.put("Player2" + option + "Suit", suit2);
+        }
       }
-      if (suit2.equals("null") || suit1.isBlank()) {
-        suit2 = "";
-      } else if (hidePick != null && option.equals("Pick")){
-        suit2 = hidePick.charAt(0) != '0' ? Player2.equals(userid) ? suit2 : "1" : suit2;
+      if (Objects.equals(player2Id, userid)) {
+        hashMap.put("Player2" + option + "Suit", suit1);
+        if (b) {
+          hashMap.put("Player1" + option + "Suit", suit2);
+        }
       }
-
-      hashMap.put("Player1" + option + "Suit", suit1);
-      hashMap.put("Player2" + option + "Suit", suit2);
-
       return hashMap;
     }
     return null;

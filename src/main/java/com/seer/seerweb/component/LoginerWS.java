@@ -122,7 +122,7 @@ public class LoginerWS implements WebSocketHandler {
 
   @Override
   public void handleTransportError(@NotNull WebSocketSession session, @NotNull Throwable exception) {
-
+    log.info(exception.getMessage());
   }
 
   @Override

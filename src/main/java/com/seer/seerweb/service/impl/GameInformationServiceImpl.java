@@ -295,7 +295,7 @@ public class GameInformationServiceImpl implements GameInformationService{
             redisTemplate.delete(id);
             redisTemplate.opsForHash().put(gameId,"phase","WaitingStage");
             redisTemplate.delete("game" + Player2);
-            LoginerWS.sendMessageById(Player1, "Player1Exit");
+            LoginerWS.sendMessageById(Player1, "Player2Exit");
             return ResultUtil.success();
           }
         }
