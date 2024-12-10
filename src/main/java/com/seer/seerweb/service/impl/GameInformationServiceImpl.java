@@ -280,24 +280,19 @@ public class GameInformationServiceImpl implements GameInformationService{
           return ResultUtil.success();
 //        } else if (phase !=null && (phase.equals("WaitingStage") || phase.equals("PreparationStage")) || phase.equals("ReadyStage") || phase.equals("WaitingPeriodResult")){
         } else {
-          // 房间模式
+          // 房间模式，退出直接关闭房间
           if (type != null && type.equals("Player1")) {
-            // 房主退出直接关闭房间
             LoginerWS.sendMessageById(Player2, "endGame");
-            redisTemplate.delete("game" + Player1);
-            redisTemplate.delete("game" + Player2);
-            if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
-              redisTemplate.delete(gameId);
-            }
-            return ResultUtil.success();
           } else {
-            redisTemplate.opsForHash().put(gameId, type, "");
-            redisTemplate.delete(id);
-            redisTemplate.opsForHash().put(gameId,"phase","WaitingStage");
-            redisTemplate.delete("game" + Player2);
-            LoginerWS.sendMessageById(Player1, "Player2Exit");
-            return ResultUtil.success();
+            LoginerWS.sendMessageById(Player1, "endGame");
           }
+
+          redisTemplate.delete("game" + Player1);
+          redisTemplate.delete("game" + Player2);
+          if (Objects.equals(redisTemplate.opsForHash().get(gameId, "conventionalMode"), "common")) {
+            redisTemplate.delete(gameId);
+          }
+          return ResultUtil.success();
         }
       }else{
         Integer currentPeriod = (Integer) redisTemplate.opsForHash().get(gameId, "CurrentPeriod");
