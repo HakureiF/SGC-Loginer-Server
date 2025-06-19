@@ -15,4 +15,5 @@ public class BagPetVO {
     private Skill hideSkill;
     private Integer state; //0——无 1——被ban 2——首发 3——出战
     private List<MarkVO> bindMarks;
+    private Integer skinId;
 }

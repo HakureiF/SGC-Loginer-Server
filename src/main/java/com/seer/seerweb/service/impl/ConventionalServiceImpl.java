@@ -52,6 +52,13 @@ public class ConventionalServiceImpl implements ConventionalService {
 //            log.info("检查神谕羁绊精灵耗时" + executionTime + "ms");
 //            startTime = endTime;
 
+            // 校验皮肤
+            for (BagPetVO bagPetVO : bagVO.getBagInfo()) {
+                if (bagPetVO.getSkinId() > 689) {
+                    return "请勿使用2025年春节后的皮肤";
+                }
+            }
+
             StringBuilder res = new StringBuilder();
             List<Integer> ids = bagVO.getBagInfo().stream().map(BagPetVO::getId).toList();
             List<Integer> errban = new ArrayList<>();
@@ -202,6 +209,20 @@ public class ConventionalServiceImpl implements ConventionalService {
 //            executionTime = System.currentTimeMillis() - startTime;
 //            log.info("检测刻印宝石耗时" + executionTime + "ms");
 //            startTime = endTime;
+
+            if (racegroup.getMaxElfId() != null && racegroup.getMaxAttackSkillId() != null && racegroup.getMaxNormalSkillId() != null) {
+                for (BagPetVO bagPetVO: bagVO.getBagInfo()) {
+                    if (bagPetVO.getId() < 5000 && bagPetVO.getId() > racegroup.getMaxElfId() ) {
+                        return "当前模式禁止携带序号超过" + racegroup.getMaxElfId() + "的精灵";
+                    }
+                    for (Skill skill: bagPetVO.getSkillArray()) {
+                        if ((skill.get_id() > 30000 && skill.get_id() > racegroup.getMaxAttackSkillId())
+                        || (skill.get_id() < 30000 && skill.get_id() > racegroup.getMaxNormalSkillId())) {
+                            return "当前模式禁止携带部分新技能";
+                        }
+                    }
+                }
+            }
 
             if (!errban.isEmpty()){
                 List<String> errname = seerElfService.listByIds(errban).stream().map(SeerElf::getDefname).collect(Collectors.toList());

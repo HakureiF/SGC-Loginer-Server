@@ -90,6 +90,15 @@ public class Racegroup implements Serializable {
     @TableField("PunishPool")
     private String punishPool; //
 
+    @TableField("MaxElfId")
+    private Integer maxElfId;
+
+    @TableField("MaxAttackSkillId")
+    private Integer maxAttackSkillId;
+
+    @TableField("MaxNormalSkillId")
+    private Integer maxNormalSkillId;
+
     @Serial
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
